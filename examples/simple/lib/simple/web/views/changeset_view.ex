@@ -1,5 +1,5 @@
-defmodule SimpleWeb.ChangesetView do
-  use SimpleWeb, :view
+defmodule Simple.Web.ChangesetView do
+  use Simple.Web, :view
 
   @doc """
   Traverses and translates changeset errors.

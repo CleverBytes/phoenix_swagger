@@ -41,8 +41,8 @@ defmodule PhoenixSwagger.JsonApiTest do
           "properties" => %{
             "first" => %{"description" => "Link to the first page of results", "type" => "string"},
             "last" => %{"description" => "Link to the last page of results", "type" => "string"},
-            "next" => %{"description" => "Link to the next page of results", "type" => "string"},
-            "prev" => %{"description" => "Link to the previous page of results", "type" => "string"},
+            "next" => %{"description" => "Link to the next page of results", "type" => ["string", "null"]},
+            "prev" => %{"description" => "Link to the previous page of results", "type" => ["string", "null"]},
             "self" => %{"description" => "Link to this page of results", "type" => "string"}
           },
           "type" => "object"
@@ -84,19 +84,7 @@ defmodule PhoenixSwagger.JsonApiTest do
         "included" => %{
           "description" => "Included resources",
           "type" => "array",
-          "items" => %{
-            "properties" => %{
-              "id" => %{
-                "description" => "The JSON-API resource ID",
-                "type" => "string"
-              },
-              "type" => %{
-                "description" => "The JSON-API resource type",
-                "type" => "string"
-              }
-            },
-            "type" => "object"
-          }
+          "items" => %{}
         }
       },
       "required" => ["data"],
@@ -158,26 +146,5 @@ defmodule PhoenixSwagger.JsonApiTest do
         }
       }
     }
-  end
-
-  test "relationship can be an array of resources" do
-    user_resource_schema =
-      JsonApi.resource do
-        description "A user that may have one or more supporter pages."
-        attributes do
-          phone :string, "Users phone number"
-          full_name :string, "Full name"
-          user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
-          user_created_at :string, "First created timestamp UTC"
-          email :string, "Email", required: true
-          birthday :string, "Birthday in YYYY-MM-DD format"
-          address Schema.ref(:Address), "Users address"
-          gender [:string, "null"], "Gender"
-        end
-        link :self, "The link to this user resource"
-        relationship :posts, type: :has_many
-      end
-
-    assert user_resource_schema["properties"]["relationships"]["properties"]["posts"]["properties"]["data"]["type"] == "array"
   end
 end

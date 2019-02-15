@@ -1,4 +1,4 @@
-defmodule SimpleWeb.ConnCase do
+defmodule Simple.Web.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -25,10 +25,10 @@ defmodule SimpleWeb.ConnCase do
       import Ecto.Changeset
       import Ecto.Query
 
-      import SimpleWeb.Router.Helpers
+      import Simple.Web.Router.Helpers
 
       # The default endpoint for testing
-      @endpoint SimpleWeb.Endpoint
+      @endpoint Simple.Web.Endpoint
     end
   end
 

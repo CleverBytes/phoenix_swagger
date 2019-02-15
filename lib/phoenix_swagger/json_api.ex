@@ -66,11 +66,11 @@ defmodule PhoenixSwagger.JsonApi do
               description:  "Link to this page of results"
             },
             prev: %Schema {
-              type:  :string,
+              type:  [:string, "null"],
               description:  "Link to the previous page of results"
             },
             next: %Schema {
-              type:  :string,
+              type:  [:string, "null"],
               description:  "Link to the next page of results"
             },
             last: %Schema {
@@ -120,13 +120,7 @@ defmodule PhoenixSwagger.JsonApi do
         included: %Schema {
           type: :array,
           description: "Included resources",
-          items: %Schema {
-            type:  :object,
-            properties: %{
-              type: %Schema{type: :string, description: "The JSON-API resource type"},
-              id: %Schema{type: :string, description: "The JSON-API resource ID"},
-            }
-          }
+          items: %Schema{}
         }
       },
       required:  [:data]
@@ -192,7 +186,7 @@ defmodule PhoenixSwagger.JsonApi do
       [do: {:__block__, _, attrs}] -> attrs
       [do: attr] -> [attr]
     end
-
+    
     attrs
     |> Enum.map(fn {name, line, args} -> {:attribute, line, [name | args]} end)
     |> Enum.reduce(model, fn next, pipeline ->
@@ -240,51 +234,29 @@ defmodule PhoenixSwagger.JsonApi do
 
   @doc """
   Defines a relationship
-  Optionally can pass `type: :has_many` or `type: :has_one` to determine
-  whether to structure the relationship as an object or array.
-  Defaults to `:has_one`
   """
-  @spec relationship(%Schema{}, name :: atom, [option]) :: %Schema{}
-        when option: {:type, relationship_type} | {:nullable, boolean},
-             relationship_type: :has_one | :has_many
-  def relationship(model = %Schema{}, name, opts \\ []) do
-    type = opts[:type] || :has_one
-
-    put_in(model.properties.relationships.properties[name], %Schema{
-      type: :object,
-      properties: %{
-        links: %Schema{
-          type: :object,
-          properties: %{
-            self: %Schema{type: :string, description: "Relationship link for #{name}"},
-            related: %Schema{type: :string, description: "Related #{name} link"}
-          }
-        },
-        data: relationship_data(type, name) |> Schema.nullable(opts[:nullable])
-      }
-    })
-  end
-
-  defp relationship_data(:has_one, name) do
-    %Schema{
-      type: :object,
-      properties: %{
-        id: %Schema{type: :string, description: "Related #{name} resource id"},
-        type: %Schema{type: :string, description: "Type of related #{name} resource"}
-      }
-    }
-  end
-
-  defp relationship_data(:has_many, name) do
-    %Schema{
-      type: :array,
-      items: %Schema{
+  def relationship(model = %Schema{}, name) do
+    put_in(
+      model.properties.relationships.properties[name],
+      %Schema{
         type: :object,
         properties: %{
-          id: %Schema{type: :string, description: "Related #{name} resource id"},
-          type: %Schema{type: :string, description: "Type of related #{name} resource"}
+          links: %Schema{
+            type: :object,
+            properties: %{
+              self: %Schema{type: :string, description: "Relationship link for #{name}"},
+              related: %Schema{type: :string, description: "Related #{name} link"}
+            }
+          },
+          data: %Schema{
+            type: :object,
+            properties: %{
+              id: %Schema{type: :string, description: "Related #{name} resource id"},
+              type: %Schema{type: :string, description: "Type of related #{name} resource"}
+            }
+          }
         }
       }
-    }
+    )
   end
 end

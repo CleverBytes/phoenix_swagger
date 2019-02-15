@@ -89,29 +89,30 @@ defmodule PhoenixSwagger.Path do
     conversion to a JSON map.
     See http://swagger.io/specification/#pathsObject
     """
-    defstruct path: nil, verb: nil, operation: %OperationObject{}
+    defstruct path: "", verb: "", operation: %OperationObject{}
   end
 
-  @doc "Initializes a PathObject with verb \"get\" and given path"
-  def get(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "get"}
+  @doc "Initializes a Swagger Path DSL block with a get verb"
+  def get(path), do: %PathObject{path: path, verb: "get"}
 
-  @doc "Initializes a PathObject with verb \"post\" and given path"
-  def post(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "post"}
+  @doc "Initializes a Swagger Path DSL block with a post verb"
+  def post(path), do: %PathObject{path: path, verb: "post"}
 
-  @doc "Initializes a PathObject with verb \"put\" and given path"
-  def put(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "put"}
+  @doc "Initializes a Swagger Path DSL block with a put verb"
+  def put(path), do: %PathObject{path: path, verb: "put"}
 
-  @doc "Initializes a PathObject with verb \"patch\" and given path"
-  def patch(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "patch"}
+  @doc "Initializes a Swagger Path DSL block with a patch verb"
+  def patch(path), do: %PathObject{path: path, verb: "patch"}
 
-  @doc "Initializes a PathObject with verb \"delete\" and given path"
-  def delete(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "delete"}
+  @doc "Initializes a Swagger Path DSL block with a delete verb"
+  def delete(path), do: %PathObject{path: path, verb: "delete"}
 
-  @doc "Initializes a PathObject with verb \"head\" and given path"
-  def head(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "head"}
+  @doc "Initializes a Swagger Path DSL block with a head verb"
+  def head(path), do: %PathObject{path: path, verb: "head"}
 
-  @doc "Initializes a PathObject with verb \"options\" and given path"
-  def options(path_obj = %PathObject{}, path), do: %{path_obj | path: path, verb: "options"}
+  @doc "Initializes a Swagger Path DSL block with a options verb"
+  def options(path), do: %PathObject{path: path, verb: "options"}
+
 
   @doc """
   Adds the summary section to the operation of a swagger `%PathObject{}`
@@ -207,13 +208,6 @@ defmodule PhoenixSwagger.Path do
     param = Map.merge(param, opts |> Enum.into(%{}, &translate_parameter_opt/1))
     params = path.operation.parameters
     put_in path.operation.parameters, params ++ [param]
-  end
-
-  @doc """
-  Adds the deprecation section to the operation of a swagger `%PathObject{}`
-  """
-  def deprecated(path = %PathObject{}, status) do
-    put_in path.operation.deprecated, status
   end
 
   defp translate_parameter_opt({:example, v}), do: {:"x-example", v}

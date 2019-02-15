@@ -46,12 +46,7 @@ defmodule PhoenixSwagger.PathTest do
     consumes "application/json"
     produces "application/json"
     parameter :name, :query, :string, "User name change", required: true
-    response 200, "OK", %Schema{type: :string}
-  end
-
-  swagger_path :health_check do
-    summary "verb and path will be taken from router"
-    response 200, "OK", %Schema{type: :string}
+    response 200, "OK", :string
   end
 
   def user_schema do
@@ -66,7 +61,6 @@ defmodule PhoenixSwagger.PathTest do
           properties do
             subscribe_to_mailing_list :boolean, "mailing list subscription", default: true
             send_special_offers :boolean, "special offers list subscription", default: true
-            phone_number :string, "specified phone", nullable: true
           end
         end)
       end
@@ -74,8 +68,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
   test "swagger_path_show produces expected swagger json" do
-    route = %{verb: :get, path: "/api/v1/users/{id}"}
-    assert swagger_path_show(route) == %{
+    assert swagger_path_show() == %{
       "/api/v1/users/{id}" => %{
         "get" => %{
           "description" => "Get a user by ID",
@@ -106,8 +99,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
   test "swagger_path_index produces expected swagger json" do
-    route = %{verb: :get, path: "/api/v1/users/"}
-    assert swagger_path_index(route) == %{
+    assert swagger_path_index() == %{
       "/api/v1/users" => %{
         "get" => %{
           "produces" => ["application/json"],
@@ -177,8 +169,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
   test "swagger_path_create produces expected swagger json" do
-    route = %{verb: :post, path: "/api/v1/users/"}
-    assert swagger_path_create(route) == %{
+    assert swagger_path_create() == %{
       "/api/v1/{team}/users" => %{
         "post" => %{
           "consumes" => ["application/json"],
@@ -232,12 +223,7 @@ defmodule PhoenixSwagger.PathTest do
                         "default" => true,
                         "description" => "mailing list subscription",
                         "type" => "boolean"
-                      },
-                      "phone_number" => %{
-                        "description" => "specified phone",
-                        "type" => "string",
-                        "x-nullable" => true
-                      },
+                      }
                     },
                     "type" => "object"
                   }
@@ -254,8 +240,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
   test "swagger_path_update produces expected swagger json" do
-    route = %{verb: :patch, path: "/api/v1/users/{id}"}
-    assert swagger_path_update(route) == %{"/api/v1/user/{id}" =>
+    assert swagger_path_update() == %{"/api/v1/user/{id}" =>
       %{"patch" =>
         %{"consumes" => ["application/json"],
           "description" => "",
@@ -264,29 +249,7 @@ defmodule PhoenixSwagger.PathTest do
                              "name" => "name", "required" => true, "type" => "string"}],
           "produces" => ["application/json"],
           "responses" => %{"200" => %{"description" => "OK",
-          "schema" => %{"type" => "string"}}},
+          "schema" => %{"$ref" => "#/definitions/string"}}},
       "summary" => "Update a users name", "tags" => ["PathTest"]}}}
   end
-
-  test "verb and path can be inferred" do
-    route = %{verb: :get, path: "/health"}
-    assert swagger_path_health_check(route) == %{
-      "/health" => %{
-        "get" => %{
-          "description" => "",
-          "operationId" => "PhoenixSwagger.PathTest.health_check",
-          "parameters" => [],
-          "responses" => %{
-            "200" => %{
-              "description" => "OK",
-              "schema" => %{"type" => "string"}
-            }
-          },
-          "summary" => "verb and path will be taken from router",
-          "tags" => ["PathTest"]
-        }
-      }
-    }
-  end
-
 end

@@ -6,22 +6,13 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
-config :simple, SimpleWeb.Endpoint,
+config :simple, Simple.Web.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
-  watchers: [],
-  live_reload: [
-    patterns: [
-      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg|json)$},
-      ~r{priv/gettext/.*(po)$},
-      ~r{lib/simple_web/views/.*(ex)$},
-      ~r{lib/simple_web/controllers/.*(ex)$},
-      ~r{lib/simple_web/templates/.*(eex)$}
-    ]
-  ],
-  reloadable_compilers: [:gettext, :phoenix, :elixir, :phoenix_swagger]
+  watchers: []
+
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

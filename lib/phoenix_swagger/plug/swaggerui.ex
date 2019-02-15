@@ -28,7 +28,6 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
   plug :dispatch
 
   @template """
-  <!-- HTML for static distribution bundle build -->
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -41,15 +40,15 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
     <style>
       html
       {
-        box-sizing: border-box;
-        overflow: -moz-scrollbars-vertical;
-        overflow-y: scroll;
+          box-sizing: border-box;
+          overflow: -moz-scrollbars-vertical;
+          overflow-y: scroll;
       }
       *,
       *:before,
       *:after
       {
-        box-sizing: inherit;
+          box-sizing: inherit;
       }
 
       body {
@@ -101,15 +100,16 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
   <script src="./swagger-ui-standalone-preset.js"> </script>
   <script>
   window.onload = function() {
-
+    var url = window.location.search.match(/url=([^&]+)/);
+    if (url && url.length > 1) {
+      url = decodeURIComponent(url[1]);
+    } else {
+      url = window.location.pathname.replace("index.html", "<%= spec_url %>")
+    }
     // Build a system
-    const swagger_url = new URL(window.location);
-    swagger_url.pathname = swagger_url.pathname.replace("index.html", "<%= spec_url %>");
-    swagger_url.hash = "";
     const ui = SwaggerUIBundle({
-      url: swagger_url.href,
+      url: url,
       dom_id: '#swagger-ui',
-      deepLinking: true,
       presets: [
         SwaggerUIBundle.presets.apis,
         SwaggerUIStandalonePreset
@@ -122,9 +122,65 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
 
     window.ui = ui
   }
+  /*
+  $(function () {
+        var url = window.location.search.match(/url=([^&]+)/);
+        if (url && url.length > 1) {
+          url = decodeURIComponent(url[1]);
+        } else {
+          url = window.location.pathname.replace("index.html", "<%= spec_url %>")
+        }
+
+        hljs.configure({
+          highlightSizeThreshold: 5000
+        });
+
+        // Pre load translate...
+        if(window.SwaggerTranslator) {
+          window.SwaggerTranslator.translate();
+        }
+        window.swaggerUi = new SwaggerUi({
+          url: url,
+          <%= validator_url %>
+          dom_id: "swagger-ui-container",
+          supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+          onComplete: function(swaggerApi, swaggerUi){
+            if(typeof initOAuth == "function") {
+              initOAuth({
+                clientId: "your-client-id",
+                clientSecret: "your-client-secret-if-required",
+                realm: "your-realms",
+                appName: "your-app-name",
+                scopeSeparator: " ",
+                additionalQueryStringParams: {}
+              });
+            }
+
+            if(window.SwaggerTranslator) {
+              window.SwaggerTranslator.translate();
+            }
+          },
+          onFailure: function(data) {
+            log("Unable to Load SwaggerUI");
+          },
+          docExpansion: "list",
+          jsonEditor: false,
+          defaultModelRendering: 'schema',
+          showRequestHeaders: false,
+          showOperationIds: false
+        });
+
+        window.swaggerUi.load();
+
+        function log() {
+          if ('console' in window) {
+            console.log.apply(console, arguments);
+          }
+        }
+    });
+    */
   </script>
   </body>
-
   </html>
   """
 
@@ -144,16 +200,12 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
   end
 
   # Render the swagger.json file or 404 for any other file
-  get "/*paths" do
+  get "/:name" do
     spec_url = conn.assigns.spec_url
-    case conn.path_params["paths"] do
-      [^spec_url] -> Conn.send_file(conn, 200, conn.assigns.swagger_file_path)
+    case conn.path_params["name"] do
+      ^spec_url -> Conn.send_file(conn, 200, conn.assigns.swagger_file_path)
       _ -> Conn.send_resp(conn, 404, "not found")
     end
-  end
-
-  match "/*paths" do
-    Conn.send_resp(conn, 405, "method not allowed")
   end
 
   @doc """
@@ -163,12 +215,20 @@ defmodule PhoenixSwagger.Plug.SwaggerUI do
 
    - `otp_app` (required) The name of the app has is hosting the swagger file
    - `swagger_file` (required) The name of the file, eg "swagger.json"
+   - `disable_validator` (optional) When set to true, disables swagger schema validation
 
   """
   def init(opts) do
     app = Keyword.fetch!(opts, :otp_app)
     swagger_file = Keyword.fetch!(opts, :swagger_file)
-    body = EEx.eval_string(@template, spec_url: swagger_file)
+    disable_validator = Keyword.get(opts, :disable_validator, false)
+    validator_url = cond do
+      disable_validator == true ->
+        "validatorUrl: null,"
+      true ->
+        ""
+    end
+    body = EEx.eval_string(@template, spec_url: swagger_file, validator_url: validator_url)
     swagger_file_path = Path.join(["priv", "static", swagger_file])
     [app: app, body: body, spec_url: swagger_file, swagger_file_path: swagger_file_path]
   end

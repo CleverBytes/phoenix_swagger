@@ -148,10 +148,8 @@ defmodule PhoenixSwagger do
     Swagger operations (aka "paths") are defined inside a `swagger_path` block.
 
     Within the do-end block, the DSL provided by the `PhoenixSwagger.Path` module can be used.
-    The DSL is any chain of functions with first argument being a `PhoenixSwagger.Path.PathObject` struct.
-
-    The verb and path can be set explicitly using the `get`, `put`, `post`, `patch`, `delete` functions, or
-    inferred from the phoenix router automatically.
+    The DSL always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions,
+    followed by any functions with first argument being a `PhoenixSwagger.Path.PathObject` struct.
 
     Swagger `tags` will default to match the module name with trailing `Controller` removed.
     Eg operations defined in module MyApp.UserController will have `tags: ["User"]`.
@@ -187,14 +185,12 @@ defmodule PhoenixSwagger do
              end)
 
       quote do
-        def unquote(fun_name)(route) do
+        def unquote(fun_name)() do
           import PhoenixSwagger.Path
 
-          %PhoenixSwagger.Path.PathObject{}
-          |> unquote(body)
+          unquote(body)
           |> PhoenixSwagger.ensure_operation_id(__MODULE__, unquote(action))
           |> PhoenixSwagger.ensure_tag(__MODULE__)
-          |> PhoenixSwagger.ensure_verb_and_path(route)
           |> PhoenixSwagger.Path.nest()
           |> PhoenixSwagger.to_json()
         end
@@ -222,13 +218,6 @@ defmodule PhoenixSwagger do
     put_in(path.operation.tags, tags)
   end
   def ensure_tag(path, _module), do: path
-
-  @doc false
-  # Allow the verb and path to be inferred from the phoenix route
-  def ensure_verb_and_path(path = %PathObject{verb: nil, path: nil}, route) do
-    %{path | verb: route.verb, path: route.path}
-  end
-  def ensure_verb_and_path(path, _route), do: path
 
   @doc false
   # Converts a Schema struct to regular map, removing nils
